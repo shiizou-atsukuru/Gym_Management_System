@@ -54,38 +54,12 @@ CREATE TABLE class_sessions (
     branch_id CHAR(50) NOT NULL,
     schedule_time TIMESTAMP NOT NULL,
     total_seats INT NOT NULL,
-    remaining_seats INT NOT NULL,
     PRIMARY KEY(session_id),
     FOREIGN KEY(service_type_id) REFERENCES service_types(service_type_id),
     FOREIGN KEY(trainer_id) REFERENCES staff(staff_id),
     FOREIGN KEY(branch_id) REFERENCES branches(branch_id),
     CHECK(total_seats>0),
-    CHECK(remaining_seats BETWEEN 0 and total_seats)
 );
-
--- CREATE TABLE takes_session (
---     staff_id CHAR(50),
---     session_id CHAR(100),
---     PRIMARY KEY(staff_id, session_id),
---     FOREIGN KEY(staff_id) REFERENCES staff(staff_id),
---     FOREIGN KEY(session_id) REFERENCES class_sessions(session_id)
--- );
-
--- CREATE TABLE has_session (
---     service_type_id CHAR(50),
---     session_id CHAR(100),
---     PRIMARY KEY(service_type_id, session_id),
---     FOREIGN KEY(service_type_id) REFERENCES service_types(service_type_id),
---     FOREIGN KEY(session_id) REFERENCES class_sessions(session_id)
--- );
-
--- CREATE TABLE hosts_session (
---     branch_id CHAR(50),
---     session_id CHAR(100),
---     PRIMARY KEY(branch_id, session_id),
---     FOREIGN KEY(branch_id) REFERENCES branches(branch_id),
---     FOREIGN KEY(session_id) REFERENCES class_sessions(session_id)
--- );
 
 CREATE TABLE booking (
     session_id CHAR(100),
@@ -114,6 +88,7 @@ CREATE TABLE membership_plans (
 );
 
 CREATE TABLE subscriptions (
+    subscription_id char(100),
     member_id CHAR(50),
     plan_id CHAR(5),
     branch_id CHAR(50),
@@ -121,7 +96,7 @@ CREATE TABLE subscriptions (
     start_date DATE,
     expiry_date DATE NOT NULL,
     status VARCHAR(10) NOT NULL,
-    PRIMARY KEY(member_id, plan_id, branch_id, payment_date, start_date),
+    PRIMARY KEY(subscription_id),
     FOREIGN KEY(member_id) REFERENCES members(member_id),
     FOREIGN KEY(plan_id) REFERENCES membership_plans(plan_id),
     FOREIGN KEY(branch_id) REFERENCES branches(branch_id)
@@ -142,3 +117,26 @@ CREATE TABLE branch_inventories (
     FOREIGN KEY(item_id) REFERENCES inventory_items(item_id),
     CHECK(quantity>0)
 );
+
+-- Views
+
+CREATE OR REPLACE VIEW view_session_availability AS
+SELECT 
+    cs.session_id,
+    st.service_name,
+    s.staff_name AS trainer_name,
+    cs.schedule_time,
+    cs.total_seats,
+    -- Calculate remaining seats dynamically
+    (cs.total_seats - COUNT(b.member_id)) AS actual_remaining_seats
+FROM 
+    class_sessions cs
+JOIN 
+    service_types st ON cs.service_type_id = st.service_type_id
+JOIN 
+    staff s ON cs.trainer_id = s.staff_id
+LEFT JOIN 
+    booking b ON cs.session_id = b.session_id
+GROUP BY 
+    cs.session_id, st.service_name, s.staff_name, cs.schedule_time, cs.total_seats;
+
