@@ -1,0 +1,25 @@
+services:
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: hello
+      POSTGRES_DB: GYM_MANAGEMENT_SYSTEM
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./sql/schema.sql:/docker-entrypoint-initdb.d/init.sql
+
+  app:
+    build: .
+    volumes:
+      - ./app:/app
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql://user:password@db:5432/my_database
+
+volumes:
+  postgres_data:
