@@ -182,3 +182,31 @@ FROM
     subscriptions s
 JOIN 
     membership_plans p ON s.plan_id = p.plan_id;
+
+
+-- INDEXES
+
+-- Indexes for Subscriptions (Crucial for the subscription_details view)
+CREATE INDEX idx_sub_member ON subscriptions(member_id);
+CREATE INDEX idx_sub_plan ON subscriptions(plan_id);
+CREATE INDEX idx_sub_branch ON subscriptions(branch_id);
+
+-- Indexes for Class Sessions (Crucial for the session_availability view)
+CREATE INDEX idx_session_service ON class_sessions(service_type_id);
+CREATE INDEX idx_session_trainer ON class_sessions(trainer_id);
+CREATE INDEX idx_session_branch ON class_sessions(branch_id);
+
+-- Index for Branch Management
+CREATE INDEX idx_branches_manager ON branches(manager_id);
+
+-- Indexes for Bridge/Relationship tables
+CREATE INDEX idx_works_at_branch ON works_at(branch_id);
+CREATE INDEX idx_specialization_service ON trainer_specialization(service_type_id);
+CREATE INDEX idx_offered_services_type ON offered_services(service_type_id);
+CREATE INDEX idx_inventory_item ON branch_inventories(item_id);
+CREATE INDEX idx_booking_member ON booking(member_id);
+
+-- Indexes for high-frequency search columns
+CREATE INDEX idx_staff_role ON staff(staff_role);
+CREATE INDEX idx_class_schedule ON class_sessions(schedule_time);
+CREATE INDEX idx_sub_payment_date ON subscriptions(payment_date);
