@@ -6,6 +6,12 @@ services:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: hello
       POSTGRES_DB: GYM_MANAGEMENT_SYSTEM
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root"]
+      interval: 2s
+      timeout: 2s
+      retries: 10
+      start_period: 30s
     ports:
       - "5432:5432"
     volumes:
@@ -17,9 +23,10 @@ services:
     volumes:
       - ./app:/app
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     environment:
-      DATABASE_URL: postgresql://user:password@db:5432/my_database
+      DATABASE_URL: postgresql://root:hello@db:5432/GYM_MANAGEMENT_SYSTEM
 
 volumes:
   postgres_data:

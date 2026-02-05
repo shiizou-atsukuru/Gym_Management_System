@@ -1,10 +1,10 @@
 CREATE TABLE members (
     internal_id SERIAL,
-    member_id CHAR(50) GENERATED ALWAYS AS (
-    'M' || LPAD(internal_id::text, 49, '0')
+    member_id CHAR(7) GENERATED ALWAYS AS (
+    'M' || LPAD(internal_id::text, 6, '0') -- M + 6 digits = 7
     ) STORED, 
     member_name VARCHAR(200) NOT NULL,
-    member_phoneno BIGINT NOT NULL,
+    member_phoneno BIGINT NOT NULL UNIQUE,
     member_address VARCHAR(500) NOT NULL,
     PRIMARY KEY(member_id),
     CHECK(member_phoneno BETWEEN 1000000000 and 9999999999)
@@ -12,8 +12,8 @@ CREATE TABLE members (
 
 CREATE TABLE staff (
     internal_id SERIAL,
-    staff_id CHAR(50) GENERATED ALWAYS AS (
-    'E' || LPAD(internal_id::text, 49, '0')
+    staff_id CHAR(7) GENERATED ALWAYS AS (
+    'E' || LPAD(internal_id::text, 6, '0') -- E + 6 digits = 7
     ) STORED, 
     staff_name VARCHAR(200) NOT NULL,
     staff_role VARCHAR(50) NOT NULL,
@@ -23,20 +23,20 @@ CREATE TABLE staff (
 
 CREATE TABLE branches (
     internal_id SERIAL,
-    branch_id CHAR(50) GENERATED ALWAYS AS (
-    'B' || LPAD(internal_id::text, 49, '0')
+    branch_id CHAR(7) GENERATED ALWAYS AS (
+    'B' || LPAD(internal_id::text, 6, '0') -- B + 6 digits = 7
     ) STORED, 
     branch_address VARCHAR(500) NOT NULL,
     branch_capacity INT NOT NULL,
-    manager_id CHAR(50) NOT NULL,
+    manager_id CHAR(7) NOT NULL,
     PRIMARY KEY(branch_id),
     FOREIGN KEY(manager_id) REFERENCES staff(staff_id),
     CHECK(branch_capacity BETWEEN 1 AND 500)
 );
 
 CREATE TABLE works_at (
-    staff_id CHAR(50),
-    branch_id CHAR(50),
+    staff_id CHAR(7),
+    branch_id CHAR(7),
     PRIMARY KEY(staff_id, branch_id),
     FOREIGN KEY(staff_id) REFERENCES staff(staff_id),
     FOREIGN KEY(branch_id) REFERENCES branches(branch_id)
@@ -44,16 +44,16 @@ CREATE TABLE works_at (
 
 CREATE TABLE service_types (
     internal_id SERIAL,
-    service_type_id CHAR(50) GENERATED ALWAYS AS (
-    'SE' || LPAD(internal_id::text, 48, '0')
+    service_type_id CHAR(7) GENERATED ALWAYS AS (
+    'SE' || LPAD(internal_id::text, 5, '0') -- SE + 5 digits = 7
     ) STORED, 
     service_name VARCHAR(50) NOT NULL UNIQUE,
     PRIMARY KEY(service_type_id)
 );
 
 CREATE TABLE trainer_specialization (
-    trainer_id CHAR(50),
-    service_type_id CHAR(50),
+    trainer_id CHAR(7),
+    service_type_id CHAR(7),
     PRIMARY KEY(trainer_id, service_type_id),
     FOREIGN KEY(trainer_id) REFERENCES staff(staff_id),
     FOREIGN KEY(service_type_id) REFERENCES service_types(service_type_id)
@@ -61,12 +61,12 @@ CREATE TABLE trainer_specialization (
 
 CREATE TABLE class_sessions (
     internal_id SERIAL,
-    session_id CHAR(100) GENERATED ALWAYS AS (
-    'SS' || LPAD(internal_id::text, 98, '0')
+    session_id CHAR(10) GENERATED ALWAYS AS (
+    'SS' || LPAD(internal_id::text, 8, '0') -- SS + 8 digits = 10
     ) STORED, 
-    service_type_id CHAR(50) NOT NULL,
-    trainer_id CHAR(50) NOT NULL,
-    branch_id CHAR(50) NOT NULL,
+    service_type_id CHAR(7) NOT NULL,
+    trainer_id CHAR(7) NOT NULL,
+    branch_id CHAR(7) NOT NULL,
     schedule_time TIMESTAMP NOT NULL,
     total_seats INT NOT NULL,
     PRIMARY KEY(session_id),
@@ -77,16 +77,16 @@ CREATE TABLE class_sessions (
 );
 
 CREATE TABLE booking (
-    session_id CHAR(100),
-    member_id CHAR(50),
+    session_id CHAR(10),
+    member_id CHAR(7),
     PRIMARY KEY(session_id, member_id),
     FOREIGN KEY(member_id) REFERENCES members(member_id),
     FOREIGN KEY(session_id) REFERENCES class_sessions(session_id)
 );
 
 CREATE TABLE offered_services (
-    branch_id CHAR(50),
-    service_type_id CHAR(50),
+    branch_id CHAR(7),
+    service_type_id CHAR(7),
     PRIMARY KEY(branch_id, service_type_id),
     FOREIGN KEY(branch_id) REFERENCES branches(branch_id),
     FOREIGN KEY(service_type_id) REFERENCES service_types(service_type_id)
@@ -95,7 +95,7 @@ CREATE TABLE offered_services (
 CREATE TABLE membership_plans (
     internal_id SERIAL,
     plan_id CHAR(5) GENERATED ALWAYS AS (
-    'P' || LPAD(internal_id::text, 4, '0')
+    'P' || LPAD(internal_id::text, 4, '0') -- P + 4 digits = 5 (kept as requested earlier)
     ) STORED, 
     tier_name VARCHAR(50) NOT NULL UNIQUE,
     fee INT NOT NULL,
@@ -107,12 +107,12 @@ CREATE TABLE membership_plans (
 
 CREATE TABLE subscriptions (
     internal_id SERIAL,
-    subscription_id char(100) GENERATED ALWAYS AS (
-    'SU' || LPAD(internal_id::text, 98, '0')
+    subscription_id char(10) GENERATED ALWAYS AS (
+    'SU' || LPAD(internal_id::text, 8, '0') -- SU + 8 digits = 10
     ) STORED,
-    member_id CHAR(50),
+    member_id CHAR(7),
     plan_id CHAR(5),
-    branch_id CHAR(50),
+    branch_id CHAR(7),
     payment_date DATE,
     start_date DATE,
     PRIMARY KEY(subscription_id),
@@ -124,16 +124,16 @@ CREATE TABLE subscriptions (
 
 CREATE TABLE inventory_items (
     internal_id SERIAL,
-    item_id CHAR(50) GENERATED ALWAYS AS (
-    'I' || LPAD(internal_id::text, 49, '0')
+    item_id CHAR(7) GENERATED ALWAYS AS (
+    'I' || LPAD(internal_id::text, 6, '0') -- I + 6 digits = 7
     ) STORED, 
     item_name VARCHAR(100) NOT NULL UNIQUE,
     PRIMARY KEY(item_id)
 );
 
 CREATE TABLE branch_inventories (
-    branch_id CHAR(50),
-    item_id CHAR(50),
+    branch_id CHAR(7),
+    item_id CHAR(7),
     quantity INT,
     PRIMARY KEY(branch_id, item_id),
     FOREIGN KEY(branch_id) REFERENCES branches(branch_id),
